@@ -2,92 +2,145 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Negozio Online</title>
-        <link rel="stylesheet" href="ecommerce.css">
-    <link rel="stylesheet" href="prodotti.json">
-    <link rel="stylesheet" href="prodotti.xml">
-    <link rel="stylesheet" href="node.js">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="ecommerce.css">
+
+    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        #product-list { margin-top: 20px; }
-        .product-item { margin-bottom: 20px; }
-    </style>
 </head>
 <body>
+
+<div class="container">
     <h1>Negozio Online</h1>
-    <label for="marca-select">Seleziona Marca:</label>
+
+    <!-- Selezione marca -->
+    <label for="marca-select">Seleziona Marca</label>
     <select id="marca-select">
         <option value="Marca1">Marca 1</option>
         <option value="Marca2">Marca 2</option>
     </select>
 
+    <!-- Prodotti -->
+    <h2>Prodotti</h2>
     <div id="product-list"></div>
 
-    <button id="generateReceipt" style="margin-top: 20px;">Genera Scontrino</button>
+    <!-- Carrello -->
+    <h2>Carrello</h2>
+    <div id="cart"></div>
+    <h3 id="total">Totale: € 0.00</h3>
 
-    <script>
-        let carrello = [];
+    <button id="generateReceipt">Stampa Scontrino</button>
+</div>
 
-        // carica i prodotti per la marca selezionata
-        document.getElementById('marca-select').addEventListener('change', function() {
-            const marca = this.value;
-            fetch(`/api/prodotti/json`)
-                .then(response => response.json())
-                .then(data => {
-                    const filteredProducts = data.filter(product => product.marca === marca);
-                    displayProducts(filteredProducts);
-                });
+<script>
+let prodotti = [];
+let carrello = [];
+
+// Carica prodotti dal backend
+function caricaProdotti(marca) {
+    fetch('/api/prodotti/json')
+        .then(res => res.json())
+        .then(data => {
+            prodotti = data.filter(p => p.marca === marca);
+            mostraProdotti();
         });
+}
 
-        // visualizza i prodotti
-        function displayProducts(products) {
-            const productList = document.getElementById('product-list');
-            productList.innerHTML = '';
+document.getElementById('marca-select').addEventListener('change', e => {
+    caricaProdotti(e.target.value);
+});
 
-            products.forEach(product => {
-                const productDiv = document.createElement('div');
-                productDiv.classList.add('product-item');
-                productDiv.innerHTML = `
-                    <h3>${product.name}</h3>
-                    <p>Descrizione: ${product.description}</p>
-                    <p>Prezzo: €${product.price}</p>
-                    <button onclick="addToCart(${product.id}, '${product.name}', ${product.price})">Aggiungi al carrello</button>
-                `;
-                productList.appendChild(productDiv);
-            });
-        }
+// Mostra prodotti
+function mostraProdotti() {
+    const lista = document.getElementById('product-list');
+    lista.innerHTML = '';
 
-        // aggiungi prodotto al carrello
-        function addToCart(id, name, price) {
-            carrello.push({ id, name, price });
-            alert(`${name} aggiunto al carrello!`);
-        }
+    prodotti.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'product-item';
+        div.innerHTML = `
+            <h3>${p.name}</h3>
+            <p>${p.description}</p>
+            <p><strong>€ ${p.price}</strong></p>
+            <button onclick="aggiungiCarrello(${p.id})">
+                Aggiungi
+            </button>
+        `;
+        lista.appendChild(div);
+    });
+}
 
-        // genera il PDF dello scontrino
-        document.getElementById('generateReceipt').addEventListener('click', function() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+// Aggiungi al carrello
+function aggiungiCarrello(id) {
+    const prodotto = prodotti.find(p => p.id === id);
+    const presente = carrello.find(p => p.id === id);
 
-            doc.text('Scontrino Fiscale', 10, 10);
-            let yOffset = 20;
+    if (presente) {
+        presente.qta++;
+    } else {
+        carrello.push({ ...prodotto, qta: 1 });
+    }
 
-            carrello.forEach(product => {
-                doc.text(`${product.name} - €${product.price}`, 10, yOffset);
-                yOffset += 10;
-            });
+    aggiornaCarrello();
+}
 
-            const total = carrello.reduce((sum, product) => sum + product.price, 0);
-            doc.text(`Totale: €${total.toFixed(2)}`, 10, yOffset + 10);
+// Rimuovi prodotto
+function rimuovi(id) {
+    carrello = carrello.filter(p => p.id !== id);
+    aggiornaCarrello();
+}
 
-            doc.save('scontrino.pdf');
-        });
+// Aggiorna carrello
+function aggiornaCarrello() {
+    const cartDiv = document.getElementById('cart');
+    cartDiv.innerHTML = '';
+    let totale = 0;
 
-        // carica i prodotti inizali
-        document.getElementById('marca-select').dispatchEvent(new Event('change'));
-    </script>
+    carrello.forEach(p => {
+        totale += p.price * p.qta;
+
+        cartDiv.innerHTML += `
+            <div class="product-item">
+                <h4>${p.name}</h4>
+                <p>Prezzo: € ${p.price}</p>
+                <p>Quantità: ${p.qta}</p>
+                <button onclick="rimuovi(${p.id})">Rimuovi</button>
+            </div>
+        `;
+    });
+
+    document.getElementById('total').innerText =
+        `Totale: € ${totale.toFixed(2)}`;
+}
+
+// Scontrino PDF
+document.getElementById('generateReceipt').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.text('SCONTRINO FISCALE', 10, 10);
+    let y = 20;
+    let totale = 0;
+
+    carrello.forEach(p => {
+        doc.text(
+            `${p.name} x${p.qta} - € ${(p.price * p.qta).toFixed(2)}`,
+            10, y
+        );
+        totale += p.price * p.qta;
+        y += 10;
+    });
+
+    doc.text(`Totale: € ${totale.toFixed(2)}`, 10, y + 10);
+    doc.save('scontrino.pdf');
+});
+
+// Avvio iniziale
+caricaProdotti('Marca1');
+</script>
+
 </body>
 </html>
-
-
