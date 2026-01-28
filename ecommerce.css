@@ -1,0 +1,148 @@
+/* reset di base per rimuovere margini e padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* corpo della pagina */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fc;
+    color: #333;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+/* intestazione */
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    font-size: 2.5em;
+    margin-bottom: 30px;
+}
+
+/* contenitore principale */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+/* selettore della marca */
+label {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    display: block;
+    color: #2c3e50;
+}
+
+select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #3498db;
+    border-radius: 5px;
+    font-size: 1em;
+    background-color: #f1f1f1;
+    color: #333;
+    margin-bottom: 30px;
+    transition: border-color 0.3s ease;
+}
+
+select:focus {
+    border-color: #2980b9;
+    outline: none;
+}
+
+/* elenco dei prodotti */
+#product-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* singolo prodotto */
+.product-item {
+    background-color: #fff;
+    border: 2px solid #ecf0f1;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-item:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.product-item h3 {
+    font-size: 1.5em;
+    color: #2980b9;
+    margin-bottom: 15px;
+}
+
+.product-item p {
+    font-size: 1em;
+    color: #7f8c8d;
+    margin-bottom: 15px;
+}
+
+.product-item button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.product-item button:hover {
+    background-color: #2980b9;
+}
+
+/* bottone per generare lo scontrino */
+#generateReceipt {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 5px;
+    font-size: 1.2em;
+    cursor: pointer;
+    display: block;
+    margin: 30px auto;
+    transition: background-color 0.3s ease;
+}
+
+#generateReceipt:hover {
+    background-color: #2ecc71;
+}
+
+#generateReceipt:focus {
+    outline: none;
+}
+
+/* stile responsivo */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    #product-list {
+        grid-template-columns: 1fr;
+    }
+
+    .product-item {
+        margin-bottom: 20px;
+    }
+}
